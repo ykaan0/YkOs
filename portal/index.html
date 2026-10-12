@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YkOs - Vulnerable Security Lab & CTF Environment</title>
+  <style>
+    :root {
+      --bg: #07090e;
+      --bg-surface: #0e131f;
+      --card-bg: rgba(16, 23, 38, 0.75);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --card-hover: rgba(225, 29, 72, 0.25);
+      --accent: #e11d48;
+      --accent-glow: rgba(225, 29, 72, 0.4);
+      --cyan: #06b6d4;
+      --cyan-glow: rgba(6, 182, 212, 0.3);
+      --green: #10b981;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --font-mono: 'Consolas', 'Fira Code', 'Courier New', monospace;
+      --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2.5rem 1.5rem 4rem;
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(225, 29, 72, 0.18), transparent 50%),
+        radial-gradient(circle at 100% 100%, rgba(6, 182, 212, 0.08), transparent 40%),
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 36px 36px, 36px 36px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1180px;
+    }
+
+    /* Terminal ASCII Header */
+    .ascii-banner {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      line-height: 1.15;
+      color: #f43f5e;
+      text-shadow: 0 0 12px var(--accent-glow);
+      margin: 0 auto 1.5rem;
+      white-space: pre;
+      overflow-x: auto;
+      text-align: center;
+      user-select: none;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .badge-bar {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      background: rgba(225, 29, 72, 0.15);
+      border: 1px solid rgba(225, 29, 72, 0.4);
+      color: #fda4af;
+    }
+
+    .badge.cyan {
+      background: rgba(6, 182, 212, 0.15);
+      border-color: rgba(6, 182, 212, 0.4);
+      color: #67e8f9;
+    }
+
+    h1 {
+      font-size: 2.75rem;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.75rem;
+      background: linear-gradient(135deg, #ffffff 40%, #f43f5e 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      line-height: 1.6;
+      max-width: 780px;
+      margin: 0 auto;
+    }
+
+    /* CTF Tracker Section */
+    .tracker-card {
+      background: rgba(14, 20, 34, 0.85);
+      border: 1px solid rgba(225, 29, 72, 0.3);
+      border-radius: 1rem;
+      padding: 1.75rem;
+      margin-bottom: 3rem;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .tracker-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .tracker-title {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 1.35rem;
+      font-weight: 800;
+    }
+
+    .progress-info {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #cbd5e1;
+      font-family: var(--font-mono);
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: 10px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 9999px;
+      overflow: hidden;
+      margin-bottom: 1.75rem;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #e11d48, #06b6d4);
+      border-radius: 9999px;
+      transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .flag-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+    }
+
+    .flag-item {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 0.75rem;
+      padding: 1rem;
+      transition: all 0.2s ease;
+    }
+
+    .flag-item.solved {
+      background: rgba(16, 185, 129, 0.1);
+      border-color: rgba(16, 185, 129, 0.4);
+    }
+
+    .flag-label {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+    }
+
+    .flag-tag {
+      font-size: 0.7rem;
+      font-family: var(--font-mono);
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.08);
+      color: #94a3b8;
+    }
+
+    .flag-input-group {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .flag-input {
+      flex: 1;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 0.4rem;
+      padding: 0.45rem 0.65rem;
+      color: #fff;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+    }
+
+    .flag-input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .flag-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 0.4rem;
+      padding: 0 0.85rem;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .flag-btn:hover {
+      background: #be123c;
+    }
+
+    /* Lab Grid */
+    .section-title {
+      font-size: 1.6rem;
+      font-weight: 800;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 1rem;
+      padding: 1.75rem;
+      backdrop-filter: blur(14px);
+      transition: all 0.25s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(225, 29, 72, 0.4);
+      box-shadow: 0 14px 30px var(--accent-glow);
+    }
+
+    .card.feature {
+      border-color: rgba(6, 182, 212, 0.3);
+    }
+
+    .card.feature:hover {
+      box-shadow: 0 14px 30px var(--cyan-glow);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+    }
+
+    .card-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+
+    .port-tag {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 0.25rem 0.55rem;
+      border-radius: 0.375rem;
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.2);
+    }
+
+    .card-desc {
+      color: var(--text-muted);
+      font-size: 0.92rem;
+      line-height: 1.55;
+      margin-bottom: 1.5rem;
+    }
+
+    .target-highlights {
+      list-style: none;
+      margin-bottom: 1.5rem;
+    }
+
+    .target-highlights li {
+      font-size: 0.83rem;
+      color: #cbd5e1;
+      margin-bottom: 0.35rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .target-highlights li::before {
+      content: "▹";
+      color: var(--accent);
+      font-weight: bold;
+    }
+
+    .btn {
+      display: inline-block;
+      text-align: center;
+      padding: 0.75rem 1.25rem;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.9rem;
+      text-decoration: none;
+      border-radius: 0.5rem;
+      transition: background 0.2s ease, transform 0.1s ease;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      background: #be123c;
+    }
+
+    .btn.cyan {
+      background: #0284c7;
+    }
+
+    .btn.cyan:hover {
+      background: #0369a1;
+    }
+
+    /* Comparison Box */
+    .comparison-banner {
+      background: rgba(14, 20, 34, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 1rem;
+      padding: 1.75rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .comp-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.25rem;
+      margin-top: 1rem;
+    }
+
+    .comp-item {
+      background: rgba(255, 255, 255, 0.02);
+      padding: 1rem;
+      border-radius: 0.5rem;
+      border-left: 3px solid var(--cyan);
+    }
+
+    .comp-item h4 {
+      font-size: 0.95rem;
+      margin-bottom: 0.3rem;
+      color: #f1f5f9;
+    }
+
+    .comp-item p {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* Warning */
+    .warning-banner {
+      background: rgba(225, 29, 72, 0.1);
+      border: 1px solid rgba(225, 29, 72, 0.35);
+      border-radius: 0.75rem;
+      padding: 1.1rem 1.5rem;
+      font-size: 0.88rem;
+      color: #fecdd3;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    footer {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-top: 3rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- Terminal ASCII Header -->
+    <div class="ascii-banner">
+                _                 
+ _   _ | | _____  ___     
+| | | || |/ / _ \/ __|    
+| |_| ||   < (_) \__ \    
+ \__, ||_|\_\___/|___/    
+ |___/                    
+    </div>
+
+    <header>
+      <div class="badge-bar">
+        <span class="badge">🔥 Next-Gen Security Lab</span>
+        <span class="badge cyan">⚡ Docker Escape Ready</span>
+        <span class="badge">🎯 5 CTF Flags</span>
+      </div>
+      <h1>YkOs Security Environment</h1>
+      <p class="subtitle">
+        Going beyond Metasploitable with modern container breakouts, API security vulnerabilities, and contemporary Linux local privilege escalation (LPE) techniques.
+      </p>
+    </header>
+
+    <!-- Interactive CTF / Flag Tracker Section -->
+    <div class="tracker-card">
+      <div class="tracker-header">
+        <div class="tracker-title">
+          <span>🚩</span>
+          <span>Penetration Testing Goals & Flag Verifier</span>
+        </div>
+        <div class="progress-info" id="progressText">0 / 5 Flags Solved (0%)</div>
+      </div>
+      
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progressBar"></div>
+      </div>
+
+      <div class="flag-grid">
+        <!-- Flag 1 -->
+        <div class="flag-item" id="card-flag1">
+          <div class="flag-label">
+            <span>1. Recon: FTP Anonymous Leak</span>
+            <span class="flag-tag">Port 21</span>
+          </div>
+          <div class="flag-input-group">
+            <input type="text" class="flag-input" id="input-flag1" placeholder="YKOS{...}">
+            <button class="flag-btn" onclick="submitFlag(1)">Submit</button>
+          </div>
+        </div>
+
+        <!-- Flag 2 -->
+        <div class="flag-item" id="card-flag2">
+          <div class="flag-label">
+            <span>2. DevOps API: Command Injection</span>
+            <span class="flag-tag">Port 5000</span>
+          </div>
+          <div class="flag-input-group">
+            <input type="text" class="flag-input" id="input-flag2" placeholder="YKOS{...}">
+            <button class="flag-btn" onclick="submitFlag(2)">Submit</button>
+          </div>
+        </div>
+
+        <!-- Flag 3 -->
+        <div class="flag-item" id="card-flag3">
+          <div class="flag-label">
+            <span>3. Container Breakout</span>
+            <span class="flag-tag">Docker Escape</span>
+          </div>
+          <div class="flag-input-group">
+            <input type="text" class="flag-input" id="input-flag3" placeholder="YKOS{...}">
+            <button class="flag-btn" onclick="submitFlag(3)">Submit</button>
+          </div>
+        </div>
+
+        <!-- Flag 4 -->
+        <div class="flag-item" id="card-flag4">
+          <div class="flag-label">
+            <span>4. User Shell Access</span>
+            <span class="flag-tag">user.txt</span>
+          </div>
+          <div class="flag-input-group">
+            <input type="text" class="flag-input" id="input-flag4" placeholder="YKOS{...}">
+            <button class="flag-btn" onclick="submitFlag(4)">Submit</button>
+          </div>
+        </div>
+
+        <!-- Flag 5 -->
+        <div class="flag-item" id="card-flag5">
+          <div class="flag-label">
+            <span>5. Root LPE (Capabilities)</span>
+            <span class="flag-tag">root.txt</span>
+          </div>
+          <div class="flag-input-group">
+            <input type="text" class="flag-input" id="input-flag5" placeholder="YKOS{...}">
+            <button class="flag-btn" onclick="submitFlag(5)">Submit</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vulnerable Target Services -->
+    <h2 class="section-title">🧪 Vulnerable Target Services</h2>
+    <div class="grid">
+      
+      <!-- DevOps & Docker Escape Lab -->
+      <div class="card feature">
+        <div>
+          <div class="card-header">
+            <div>
+              <div class="card-title" style="color:#38bdf8;">Cloud DevOps & API</div>
+              <small style="color:#06b6d4; font-weight:700;">★ NOT IN METASPLOITABLE</small>
+            </div>
+            <span class="port-tag">Port 5000</span>
+          </div>
+          <p class="card-desc">
+            Modern command injection and Docker socket breakout environment. Execute shell commands via the diagnostic web tool, infiltrate the container, and exploit <code>/var/run/docker.sock</code> to compromise the host operating system!
+          </p>
+          <ul class="target-highlights">
+            <li>Command Injection & Ping RCE</li>
+            <li>Docker Breakout (Container to Host Escape)</li>
+            <li>Cloud Microservice Security Auditing</li>
+          </ul>
+        </div>
+        <a href="#" class="btn cyan" onclick="goPort(5000)">Launch API & DevOps Lab ▹</a>
+      </div>
+
+      <!-- OWASP Juice Shop -->
+      <div class="card">
+        <div>
+          <div class="card-header">
+            <div class="card-title">OWASP Juice Shop</div>
+            <span class="port-tag">Port 3000</span>
+          </div>
+          <p class="card-desc">
+            Modern JavaScript, Angular, and REST API based vulnerability simulation. Encompasses the entire OWASP Top 10 web security risks.
+          </p>
+          <ul class="target-highlights">
+            <li>JWT & NoSQL Injection</li>
+            <li>Broken Access Control & BOLA / IDOR</li>
+            <li>XSS, CSRF & Business Logic Flaws</li>
+          </ul>
+        </div>
+        <a href="#" class="btn" onclick="goPort(3000)">Launch Juice Shop ▹</a>
+      </div>
+
+      <!-- DVWA -->
+      <div class="card">
+        <div>
+          <div class="card-header">
+            <div class="card-title">DVWA (Classic Web Lab)</div>
+            <span class="port-tag">Port 8080</span>
+          </div>
+          <p class="card-desc">
+            Damn Vulnerable Web Application. The classic PHP lab for hands-on practice with SQL Injection, Local/Remote File Inclusion (LFI/RFI), and Unrestricted File Uploads.
+          </p>
+          <ul class="target-highlights">
+            <li>SQL Injection & Authentication Bypass</li>
+            <li>File Upload RCE</li>
+            <li>Adjustable Security Levels (Low to Impossible)</li>
+          </ul>
+        </div>
+        <a href="#" class="btn" onclick="goPort(8080)">Launch DVWA ▹</a>
+      </div>
+
+      <!-- System & Network Services -->
+      <div class="card">
+        <div>
+          <div class="card-header">
+            <div class="card-title">System & Network Services</div>
+            <span class="port-tag">Ports 21, 22, 23</span>
+          </div>
+          <p class="card-desc">
+            Anonymous FTP file disclosure, weak credential SSH and Telnet services for network reconnaissance, banner grabbing, and brute-force drills.
+          </p>
+          <ul class="target-highlights">
+            <li>Anonymous FTP Access (Flag leakage)</li>
+            <li>Weak SSH & Telnet Credentials</li>
+            <li>Nmap Recon & Banner Grabbing Practice</li>
+          </ul>
+        </div>
+        <span class="port-tag" style="display:block; text-align:center; padding: 0.75rem; border-color: rgba(255,255,255,0.1);">Terminal / Nmap / SSH</span>
+      </div>
+
+      <!-- Linux LPE -->
+      <div class="card">
+        <div>
+          <div class="card-header">
+            <div class="card-title">Linux Privilege Escalation</div>
+            <span class="port-tag">Local Shell</span>
+          </div>
+          <p class="card-desc">
+            Modern and classical privilege escalation vectors designed to help you transition from an unprivileged user shell to full <code>root</code> control.
+          </p>
+          <ul class="target-highlights">
+            <li>Linux Capabilities: <code>python3 (cap_setuid)</code></li>
+            <li>GTFOBins: SUID <code>find</code> Exploitation</li>
+            <li>Wildcard Cron Injection & Sudo Misconfiguration</li>
+          </ul>
+        </div>
+        <span class="port-tag" style="display:block; text-align:center; padding: 0.75rem; border-color: rgba(255,255,255,0.1);">LinPEAS / GTFOBins Practice</span>
+      </div>
+
+    </div>
+
+    <!-- Metasploitable Comparison Box -->
+    <div class="comparison-banner">
+      <h3 style="display:flex; align-items:center; gap:0.5rem; font-size:1.15rem;">
+        <span>⚡</span> <span>YkOs vs. Metasploitable 2: Why YkOs is More Advanced?</span>
+      </h3>
+      <div class="comp-grid">
+        <div class="comp-item">
+          <h4>Docker Breakout</h4>
+          <p>Metasploitable 2 lacks containerization. YkOs provides real-world Docker socket to host escalation scenarios.</p>
+        </div>
+        <div class="comp-item">
+          <h4>Modern Linux Capabilities</h4>
+          <p>Goes beyond legacy SUID attacks to cover contemporary <code>setcap</code> privilege escalation techniques.</p>
+        </div>
+        <div class="comp-item">
+          <h4>Modern API Security</h4>
+          <p>Focuses on modern REST APIs, JSON Web Tokens, and JSON microservice vulnerabilities rather than 15-year-old PHP scripts.</p>
+        </div>
+        <div class="comp-item">
+          <h4>Interactive CTF Tracker</h4>
+          <p>Rather than aimless scanning, YkOs provides a structured 5-flag roadmap with real-time verification.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Security Warning -->
+    <div class="warning-banner">
+      <span style="font-size:1.5rem;">⚠️</span>
+      <div>
+        <strong>Critical Security Notice:</strong> This machine contains intentional vulnerabilities and weak credentials.
+        Never connect this virtual machine to an untrusted or public network (Bridged). Run solely in isolated Host-Only or NatNetwork mode.
+      </div>
+    </div>
+
+    <footer>
+      YkOs Vulnerable Lab Environment &bull; Built for Cybersecurity Training and Penetration Testing Research
+    </footer>
+
+  </div>
+
+  <script>
+    // Dynamic port redirection
+    function goPort(port) {
+      const host = window.location.hostname || 'localhost';
+      window.open('http://' + host + ':' + port, '_blank');
+    }
+
+    // Flag database
+    const FLAGS = {
+      1: "YKOS{4n0nym0us_ftp_l34k_2026}",
+      2: "YKOS{cmd_1nj3ct10n_t0_c0nt41n3r_sh3ll}",
+      3: "YKOS{d0ck3r_s0ck3t_3sc4p3_succ3ss}",
+      4: "YKOS{us3r_sh3ll_4cc3ss_gr4nt3d}",
+      5: "YKOS{l1nux_c4p4b1l1t13s_r00t_m4st3r}"
+    };
+
+    function loadProgress() {
+      const solved = JSON.parse(localStorage.getItem('ykos_solved_flags') || '[]');
+      let count = 0;
+      for (let i = 1; i <= 5; i++) {
+        const card = document.getElementById('card-flag' + i);
+        const input = document.getElementById('input-flag' + i);
+        if (solved.includes(i)) {
+          card.classList.add('solved');
+          input.value = FLAGS[i];
+          input.disabled = true;
+          count++;
+        }
+      }
+      updateProgressBar(count);
+    }
+
+    function updateProgressBar(count) {
+      const total = 5;
+      const pct = Math.round((count / total) * 100);
+      document.getElementById('progressBar').style.width = pct + '%';
+      document.getElementById('progressText').innerText = `${count} / ${total} Flags Solved (${pct}%)`;
+    }
+
+    function submitFlag(index) {
+      const input = document.getElementById('input-flag' + index);
+      const val = (input.value || '').trim();
+      if (!val) {
+        alert('Please enter a flag!');
+        return;
+      }
+
+      if (val === FLAGS[index]) {
+        alert('🎉 Correct! You captured Flag #' + index + ' successfully!');
+        let solved = JSON.parse(localStorage.getItem('ykos_solved_flags') || '[]');
+        if (!solved.includes(index)) {
+          solved.push(index);
+          localStorage.setItem('ykos_solved_flags', JSON.stringify(solved));
+        }
+        loadProgress();
+      } else {
+        alert('❌ Invalid flag! Check your methodology and clues again.');
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', loadProgress);
+  </script>
+</body>
+</html>

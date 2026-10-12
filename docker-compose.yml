@@ -1,0 +1,35 @@
+services:
+  dvwa:
+    image: vulnerables/web-dvwa:latest
+    container_name: ykos-dvwa
+    restart: always
+    ports:
+      - "8080:80"
+    environment:
+      - PHP_IDE_CONFIG=serverName=localhost
+
+  juiceshop:
+    image: bkimminich/juice-shop:latest
+    container_name: ykos-juiceshop
+    restart: always
+    ports:
+      - "3000:3000"
+
+  portal:
+    image: nginx:alpine
+    container_name: ykos-portal
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./portal:/usr/share/nginx/html:ro
+
+  devops-api:
+    build: ./api
+    image: ykos/devops-api:latest
+    container_name: ykos-devops-api
+    restart: always
+    ports:
+      - "5000:5000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
