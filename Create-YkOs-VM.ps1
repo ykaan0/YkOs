@@ -4,7 +4,7 @@
 
 $vboxManage = "C:\Program Files\Oracle\VirtualBox\VBoxManage.exe"
 $vmName = "YkOs"
-$diskPath = "C:\Users\Lenovo\Desktop\YkOs\YkOs-disk.vmdk"
+$diskPath = Join-Path $PSScriptRoot "YkOs-disk.vmdk"
 
 if (-not (Test-Path $vboxManage)) {
     Write-Host "[ERROR] Oracle VirtualBox executable not found: $vboxManage" -ForegroundColor Red
